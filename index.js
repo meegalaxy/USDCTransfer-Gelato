@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { GelatoRelay } from "@gelatonetwork/relay-sdk";
 import { types, ERC20_ABI } from "./constant.js";
 import dotenv from "dotenv";
+import axios from "axios";
 dotenv.config();
 
 // Load config
@@ -69,8 +70,8 @@ async function executePermitAndTransferUSDC() {
 
     console.log("Permit transaction:", permitTx);
 
-    console.log("Waiting for 80 seconds for permit transaction to be mined...");
-    await new Promise((resolve) => setTimeout(resolve, TIMEOUT)); // Wait 80s
+    console.log("Waiting for 1 minute for permit transaction to be mined...");
+    await new Promise((resolve) => setTimeout(resolve, TIMEOUT)); // Wait
 
     // Execute transfer transaction
     const transferData = new ethers.Interface([
@@ -87,7 +88,17 @@ async function executePermitAndTransferUSDC() {
     );
 
     console.log("Transfer transaction:", transferTx);
-    return { permitTx, transferTx };
+
+    console.log("Waiting for seconds for transfer transaction to be mined...");
+    await new Promise((resolve) => setTimeout(resolve, TIMEOUT / 6)); // Wait 10s
+
+    const BaseURL = "https://api.gelato.digital/tasks/status/";
+    const response = await axios.get(BaseURL + transferTx.taskId);
+
+    const PolygonscanURL = `https://polygonscan.com/tx/${response.data.task.transactionHash}`;
+    console.log("TrasnactionID on Polygonscan: ", PolygonscanURL);
+
+    // return { permitTx, transferTx };
   } catch (error) {
     console.error("Error:", error);
     throw error;
